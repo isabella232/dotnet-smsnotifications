@@ -1,0 +1,86 @@
+﻿@model TVQMANotifications.Models.DashboardModel
+@{
+    ViewBag.Title = "TVQMA Dashboard";
+}
+
+<H1>Send an SMS to 844-287-2483 with the the word START in it.</H1>
+<div class="row">
+    <div class="col-md-6">
+        <h2>Send a new notification</h2>
+        <form asp-action="Dashboard">
+            @*<input type="hidden"  value="Jr Novice to Staging"/>*@
+            <input type="submit" asp-for="Message" value="Jr Novice to staging" class="btn btn-default" />
+            <input type="submit" asp-for="Message" value="Sr Novice to staging" class="btn btn-default" />
+            <input type="submit" asp-for="Message" value="Jr Animal to staging" class="btn btn-default" />
+            <input type="submit" asp-for="Message" value="Sr Animal to staging" class="btn btn-default" />
+            <input type="submit" asp-for="Message" value="Hvy Animal to staging" class="btn btn-default" />
+            <input type="submit" asp-for="Message" value="Jr Honda to staging" class="btn btn-default" />
+            <input type="submit" asp-for="Message" value="Sr Honda to staging" class="btn btn-default" />
+            <input type="submit" asp-for="Message" value="Hvy Honda to staging" class="btn btn-default" />
+            <input type="submit" asp-for="Message" value="Jr Stock to staging" class="btn btn-default" />
+            <input type="submit" asp-for="Message" value="Mod  to staging" class="btn btn-default" />
+            <input type="submit" asp-for="Message" value="Lt 160 to staging" class="btn btn-default" />
+            <input type="submit" asp-for="Message" value="Hvy 160 to staging" class="btn btn-default" />
+            <input type="submit" asp-for="Message" value="B to staging" class="btn btn-default" />
+            <input type="submit" asp-for="Message" value="AA/Modified World to staging" class="btn btn-default" />
+            <input type="submit" asp-for="Message" value="Jr Half to staging" class="btn btn-default" />
+            <input type="submit" asp-for="Message" value="Lt World Formula to staging" class="btn btn-default" />
+            <input type="submit" asp-for="Message" value="Hvy World Formula to staging" class="btn btn-default" />
+        </form>        
+        <form asp-action="Dashboard">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Message" class="control-label"></label>
+                <textarea asp-for="Message" class="form-control" ></textarea>
+                <span asp-validation-for="Message" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Send" class="btn btn-default" />
+            </div>
+        </form>        
+    </div>
+    <div class="col-md-6">
+        <h2>Number of Subscribers @Model.SubscriberCount</h2>
+        <table class="table">
+            <thead>
+            <tr>
+                <th colspan="2">
+                    Latest messages
+                </th>
+                <th>
+                </th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            @{
+                var i = 0;
+            }
+            @foreach (var item in Model.LastMessages)
+            {
+                i =++ i;
+                <tr  class="@(i == 1 ? "sucess" : "")" style="background: @(i == 1 ? "#dff0d8" : "")">
+                    <td >
+                        @item.DateSent.AddHours(-7)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.MessageContent)
+                    </td>
+
+                    <td>
+                        @*<a asp-action="Edit" asp-route-id="@item.MessageId">Edit</a> |*@
+                        <a asp-action="Details" asp-route-id="@item.MessageId">Details</a>
+                        @*<a asp-action="Delete" asp-route-id="@item.MessageId">Delete</a>*@
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            To unsubscibe sent stop to same number
+        </div>
+    </div>
+</div>

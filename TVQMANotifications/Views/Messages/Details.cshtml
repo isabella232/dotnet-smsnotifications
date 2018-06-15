@@ -1,0 +1,27 @@
+﻿@model TVQMANotifications.Models.Message
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h2>Sent</h2>
+
+<div>
+    <h4>Message model.DateSent.AddHours(-7)</h4>
+    <hr />
+
+    @Html.DisplayFor(model => model.MessageContent)
+    <hr />
+    <table>
+
+
+        <tr><th>Subscribers</th></tr>
+        @foreach (SendLog log in Model.Logs) {
+            <tr><td>@log.Subscriber.Number</td></tr>
+        }
+    </table>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.MessageId">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>
