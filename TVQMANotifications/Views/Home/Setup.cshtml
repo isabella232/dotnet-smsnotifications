@@ -1,0 +1,41 @@
+﻿@model TVQMANotifications.Models.SinchConfig
+
+@{
+    ViewBag.Title = "title";
+    Layout = "_Layout";
+}
+
+<h2>title</h2>
+<div class="row">
+    <div class="col-md-4">
+        Get your sinch config from sinch.com/dashboard
+        <section>
+            <form method="post">
+                <h4>Configure application</h4>
+                <hr />
+
+                <div class="form-group">
+                    <label>Sinch key</label>
+                    <input asp-for="Key" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label>Sinch Secret</label>
+                    <input asp-for="Secret" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label>From number </label>
+                    <input asp-for="SinchNumber" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label>SMS Footer </label>
+                    <input asp-for="MarketingFooter" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-default">Save</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+    

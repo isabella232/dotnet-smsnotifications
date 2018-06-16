@@ -1,4 +1,4 @@
-﻿@model TVQMANotifications.Models.DashboardModel
+﻿@model DashboardModel
 @{
     ViewBag.Title = "TVQMA Dashboard";
 }
@@ -9,24 +9,24 @@
         <h2>Send a new notification</h2>
         <form asp-action="Dashboard">
             @*<input type="hidden"  value="Jr Novice to Staging"/>*@
-            <input type="submit" asp-for="Message" value="Jr Novice to staging" class="btn btn-default" />
-            <input type="submit" asp-for="Message" value="Sr Novice to staging" class="btn btn-default" />
-            <input type="submit" asp-for="Message" value="Jr Animal to staging" class="btn btn-default" />
-            <input type="submit" asp-for="Message" value="Sr Animal to staging" class="btn btn-default" />
-            <input type="submit" asp-for="Message" value="Hvy Animal to staging" class="btn btn-default" />
-            <input type="submit" asp-for="Message" value="Jr Honda to staging" class="btn btn-default" />
-            <input type="submit" asp-for="Message" value="Sr Honda to staging" class="btn btn-default" />
-            <input type="submit" asp-for="Message" value="Hvy Honda to staging" class="btn btn-default" />
-            <input type="submit" asp-for="Message" value="Jr Stock to staging" class="btn btn-default" />
-            <input type="submit" asp-for="Message" value="Mod  to staging" class="btn btn-default" />
-            <input type="submit" asp-for="Message" value="Lt 160 to staging" class="btn btn-default" />
-            <input type="submit" asp-for="Message" value="Hvy 160 to staging" class="btn btn-default" />
-            <input type="submit" asp-for="Message" value="B to staging" class="btn btn-default" />
-            <input type="submit" asp-for="Message" value="AA/Modified World to staging" class="btn btn-default" />
-            <input type="submit" asp-for="Message" value="Jr Half to staging" class="btn btn-default" />
-            <input type="submit" asp-for="Message" value="Lt World Formula to staging" class="btn btn-default" />
-            <input type="submit" asp-for="Message" value="Hvy World Formula to staging" class="btn btn-default" />
-        </form>        
+            <input type="submit" asp-for="Message" value="Jr Novice to staging" class="btn btn-default"/>
+            <input type="submit" asp-for="Message" value="Sr Novice to staging" class="btn btn-default"/>
+            <input type="submit" asp-for="Message" value="Jr Animal to staging" class="btn btn-default"/>
+            <input type="submit" asp-for="Message" value="Sr Animal to staging" class="btn btn-default"/>
+            <input type="submit" asp-for="Message" value="Hvy Animal to staging" class="btn btn-default"/>
+            <input type="submit" asp-for="Message" value="Jr Honda to staging" class="btn btn-default"/>
+            <input type="submit" asp-for="Message" value="Sr Honda to staging" class="btn btn-default"/>
+            <input type="submit" asp-for="Message" value="Hvy Honda to staging" class="btn btn-default"/>
+            <input type="submit" asp-for="Message" value="Jr Stock to staging" class="btn btn-default"/>
+            <input type="submit" asp-for="Message" value="Mod  to staging" class="btn btn-default"/>
+            <input type="submit" asp-for="Message" value="Lt 160 to staging" class="btn btn-default"/>
+            <input type="submit" asp-for="Message" value="Hvy 160 to staging" class="btn btn-default"/>
+            <input type="submit" asp-for="Message" value="B to staging" class="btn btn-default"/>
+            <input type="submit" asp-for="Message" value="AA/Modified World to staging" class="btn btn-default"/>
+            <input type="submit" asp-for="Message" value="Jr Half to staging" class="btn btn-default"/>
+            <input type="submit" asp-for="Message" value="Lt World Formula to staging" class="btn btn-default"/>
+            <input type="submit" asp-for="Message" value="Hvy World Formula to staging" class="btn btn-default"/>
+        </form>
         <form asp-action="Dashboard">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
@@ -35,9 +35,9 @@
                 <span asp-validation-for="Message" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Send" class="btn btn-default" />
+                <input type="submit" value="Send" class="btn btn-default"/>
             </div>
-        </form>        
+        </form>
     </div>
     <div class="col-md-6">
         <h2>Number of Subscribers @Model.SubscriberCount</h2>
@@ -56,10 +56,9 @@
             @{
                 var i = 0;
             }
-            @foreach (var item in Model.LastMessages)
-            {
-                i =++ i;
-                <tr  class="@(i == 1 ? "sucess" : "")" style="background: @(i == 1 ? "#dff0d8" : "")">
+            @foreach (var item in Model.LastMessages){
+                i = ++i;
+                <tr class="@(i == 1 ? "sucess" : "")" style="background: @(i == 1 ? "#dff0d8" : "")">
                     <td >
                         @item.DateSent.AddHours(-7)
                     </td>
@@ -68,9 +67,7 @@
                     </td>
 
                     <td>
-                        @*<a asp-action="Edit" asp-route-id="@item.MessageId">Edit</a> |*@
                         <a asp-action="Details" asp-route-id="@item.MessageId">Details</a>
-                        @*<a asp-action="Delete" asp-route-id="@item.MessageId">Delete</a>*@
                     </td>
                 </tr>
             }

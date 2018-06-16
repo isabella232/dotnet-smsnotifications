@@ -1,67 +1,54 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Sinch.ServerSdk;
-using Sinch.ServerSdk.Calling.Models;
+using Microsoft.Extensions.Configuration;
 using Sinch.ServerSdk.Messaging.Models;
-using Sinch.ServerSdk.Models;
 using TVQMANotifications.Data;
 using TVQMANotifications.Models;
 using TVQMANotifications.Services;
 
-namespace TVQMANotifications.Controllers
-{
-
-
-   
+namespace TVQMANotifications.Controllers {
     [Produces("application/json")]
-    public class SMSController : Controller
-    {
+    public class SMSController : Controller{
+        private readonly SMSSender _smsSender;
         private readonly ApplicationDbContext _dbContext;
 
-        public SMSController(ApplicationDbContext dbContext)
-        {
+
+        private readonly IConfiguration _configuration;
+
+        public SMSController(ApplicationDbContext dbContext, SMSSender smsSender, IConfiguration configuration) {
+            _smsSender = smsSender;
             _dbContext = dbContext;
+
+            _configuration = configuration;
         }
 
         [Route("/SMS")]
         public async Task<OkResult> Post([FromBody] IncomingMessageEvent model) {
-
-            var smsApi = SinchFactory.CreateApiFactory("86e26d90-f372-457b-b3ae-16044eb50e3f", "3i6YiAiFi0KC7fw4DAhJSA==").CreateSmsApi();
             var fromNumber = "+" + model.From.Endpoint;
-            if (model.Message.Trim().ToLower() == "start" || model.Message.Trim().ToLower() == "unstop")
-            {
-                if (!_dbContext.Subscribers.Any(m=> m.Number == fromNumber))
-                {
-                    _dbContext.Subscribers.Add(new Subscriber
-                    {
+            Subscriber subscriber = _dbContext.Subscribers.FirstOrDefault(m => m.Number == fromNumber);
+            if (model.Message.Trim().ToLower() == "start" || model.Message.Trim().ToLower() == "unstop") {
+                if (subscriber != null) {
+                    subscriber = new Subscriber {
                         Number = fromNumber
-                    });
+                    };
+                    _dbContext.Subscribers.Add(subscriber);
                     await _dbContext.SaveChangesAsync();
                 }
-                //add subscribper
-                await smsApi.Sms(fromNumber,
-                        "Thank you! \nYou are now subscribed to Western Grands 2018 Notifications.\n\nSms by Sinch https://www.sinch.com/")
-                    .WithCli("+18442872483").Send();
+                await _smsSender.SendSMS(new Message { MessageContent = _configuration["Sinch:WelcomeMessage"] } , subscriber);
                 return Ok();
             }
+
             if (model.Message.Trim().ToLower() == "stop") {
                 if (_dbContext.Subscribers.Any(m => m.Number == fromNumber)) {
-                    _dbContext.Subscribers.Remove(_dbContext.Subscribers.First(m=> m.Number == fromNumber));
+                    _dbContext.Subscribers.Remove(_dbContext.Subscribers.First(m => m.Number == fromNumber));
                     await _dbContext.SaveChangesAsync();
                 }
                 //add subscribper
-             
+
                 return Ok();
             }
-            await smsApi.Sms(fromNumber,
-                    "Sorry, we only support Start and stopm if you have any questions please contact TVQMA")
-                .WithCli("+18442872483").Send();
+            await _smsSender.SendSMS(new Message { MessageContent = "Sorry, we only support Start and stopm if you have any questions please contact TVQMA" }, subscriber);
             return Ok();
         }
     }

@@ -1,27 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Sinch.ServerSdk;
+using Microsoft.Extensions.Configuration;
 using TVQMANotifications.Data;
 using TVQMANotifications.Models;
+using TVQMANotifications.Services;
+
 
 namespace TVQMANotifications.Controllers {
+    [Authorize]
     public class MessagesController : Controller {
         private readonly ApplicationDbContext _context;
+        private readonly SMSSender _smsSender;
+        private readonly IConfiguration _configuration;
 
-        public MessagesController(ApplicationDbContext context) {
+        public MessagesController(ApplicationDbContext context, SMSSender smsSender, IConfiguration configuration) {
             _context = context;
+            _smsSender = smsSender;
+            _configuration = configuration;
         }
 
 
         [Route("/dashboard")]
         [HttpGet]
-        public IActionResult Dashboard()
-        {
+        public IActionResult Dashboard() {
             var model = new DashboardModel();
             model.SubscriberCount = _context.Subscribers.Count();
             model.LastMessages = _context.Messages.OrderByDescending(m => m.DateSent).Take(10).ToList();
@@ -32,21 +37,19 @@ namespace TVQMANotifications.Controllers {
         [Route("/dashboard")]
         [HttpPost]
         public async Task<IActionResult> Dashboard(DashboardModel model) {
-
-            var smsApi = SinchFactory.CreateApiFactory("86e26d90-f372-457b-b3ae-16044eb50e3f", "3i6YiAiFi0KC7fw4DAhJSA==").CreateSmsApi();
-            if (ModelState.IsValid)
-            {
-                await CreateAndSendMessage(new Message
-                {
-                    MessageContent =  model.Message,
-                    DateSent =  DateTime.UtcNow
+            if (ModelState.IsValid) {
+                await CreateAndSendMessage(new Message {
+                    MessageContent = model.Message,
+                    DateSent = DateTime.UtcNow
                 });
             }
+
             model.SubscriberCount = _context.Subscribers.Count();
             model.LastMessages = _context.Messages.OrderByDescending(m => m.DateSent).Take(10).ToList();
             model.Message = "";
             return View(model);
         }
+
         // GET: Messages
         public async Task<IActionResult> Index() {
             return View(await _context.Messages.OrderByDescending(m => m.DateSent).ToListAsync());
@@ -58,7 +61,7 @@ namespace TVQMANotifications.Controllers {
                 return NotFound();
             }
 
-            var message = await _context.Messages.Include(m=> m.Logs).Include("Logs.Subscriber")
+            var message = await _context.Messages.Include(m => m.Logs).Include("Logs.Subscriber")
                 .SingleOrDefaultAsync(m => m.MessageId == id);
             if (message == null) {
                 return NotFound();
@@ -77,41 +80,22 @@ namespace TVQMANotifications.Controllers {
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MessageId,MessageContent,DateSent")] Message message)
-        {
-
-            if (ModelState.IsValid)
-            {
+        public async Task<IActionResult> Create([Bind("MessageId,MessageContent,DateSent")]
+            Message message) {
+            if (ModelState.IsValid) {
                 await CreateAndSendMessage(message);
             }
+
             return View(message);
         }
 
-        private async Task CreateAndSendMessage(Message message)
-        {
-            var smsApi = SinchFactory.CreateApiFactory("86e26d90-f372-457b-b3ae-16044eb50e3f", "3i6YiAiFi0KC7fw4DAhJSA==")
-                .CreateSmsApi();
+        private async Task CreateAndSendMessage(Message message) {
             message.DateSent = DateTime.UtcNow;
-           
-            {
-                _context.Add(message);
-                await _context.SaveChangesAsync();
-                var subscribers = await _context.Subscribers.ToListAsync();
-                foreach (var s in subscribers)
-                {
-                    var messageid = await smsApi.Sms(s.Number,
-                            message.MessageContent +
-                            ".\n\nSms by Sinch")
-                        .WithCli("+18442872483").Send();
-                    _context.SendLogs.Add(new SendLog()
-                    {
-                        DateSent = DateTime.UtcNow,
-                        MessageId = message.MessageId,
-                        SubscriberId = s.SubscriberId,
-                        SinchMessageId = messageid.MessageId.ToString()
-                    });
-                    await _context.SaveChangesAsync();
-                }
+            _context.Add(message);
+            await _context.SaveChangesAsync();
+            var subscribers = await _context.Subscribers.ToListAsync();
+            foreach (var s in subscribers) {
+                await _smsSender.SendSMS(message, s);
             }
         }
 
@@ -125,6 +109,7 @@ namespace TVQMANotifications.Controllers {
             if (message == null) {
                 return NotFound();
             }
+
             return View(message);
         }
 
@@ -133,7 +118,8 @@ namespace TVQMANotifications.Controllers {
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("MessageId,MessageContent,DateSent")] Message message) {
+        public async Task<IActionResult> Edit(int id, [Bind("MessageId,MessageContent,DateSent")]
+            Message message) {
             if (id != message.MessageId) {
                 return NotFound();
             }
@@ -149,8 +135,10 @@ namespace TVQMANotifications.Controllers {
                         throw;
                     }
                 }
+
                 return RedirectToAction(nameof(Index));
             }
+
             return View(message);
         }
 

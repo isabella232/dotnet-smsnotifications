@@ -11,19 +11,19 @@
 </p>
 <table class="table">
     <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.DateSent)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.MessageContent)
-            </th>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.DateSent)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.MessageContent)
+        </th>
 
-            <th></th>
-        </tr>
+        <th></th>
+    </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+    @foreach (var item in Model){
         <tr>
             <td>
                 @item.DateSent.AddHours(-7)
@@ -38,6 +38,6 @@
                 @*<a asp-action="Delete" asp-route-id="@item.MessageId">Delete</a>*@
             </td>
         </tr>
-}
+    }
     </tbody>
 </table>

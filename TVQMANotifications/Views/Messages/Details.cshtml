@@ -8,16 +8,20 @@
 
 <div>
     <h4>Message model.DateSent.AddHours(-7)</h4>
-    <hr />
+    <hr/>
 
     @Html.DisplayFor(model => model.MessageContent)
-    <hr />
+    <hr/>
     <table>
 
 
-        <tr><th>Subscribers</th></tr>
-        @foreach (SendLog log in Model.Logs) {
-            <tr><td>@log.Subscriber.Number</td></tr>
+        <tr>
+            <th>Subscribers</th>
+        </tr>
+        @foreach (SendLog log in Model.Logs){
+            <tr>
+                <td>@log.Subscriber.Number</td>
+            </tr>
         }
     </table>
 </div>

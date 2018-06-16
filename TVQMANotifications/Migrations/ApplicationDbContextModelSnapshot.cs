@@ -8,13 +8,12 @@ using Microsoft.EntityFrameworkCore.Storage.Internal;
 using System;
 using TVQMANotifications.Data;
 
-namespace TVQMANotifications.Data.Migrations
+namespace TVQMANotifications.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20180612050452_smsdata2")]
-    partial class smsdata2
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -205,16 +204,35 @@ namespace TVQMANotifications.Data.Migrations
 
                     b.Property<int>("MessageId");
 
+                    b.Property<string>("SinchMessageId");
+
                     b.Property<string>("Status");
 
                     b.Property<int>("SubscriberId");
 
                     b.HasKey("SendLogId");
 
-                    b.HasIndex("MessageId")
-                        .IsUnique();
+                    b.HasIndex("MessageId");
+
+                    b.HasIndex("SubscriberId");
 
                     b.ToTable("SendLogs");
+                });
+
+            modelBuilder.Entity("TVQMANotifications.Models.SinchConfig", b =>
+                {
+                    b.Property<string>("Key")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("MarketingFooter");
+
+                    b.Property<string>("Secret");
+
+                    b.Property<string>("SinchNumber");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("SinchConfig");
                 });
 
             modelBuilder.Entity("TVQMANotifications.Models.Subscriber", b =>
@@ -277,8 +295,13 @@ namespace TVQMANotifications.Data.Migrations
             modelBuilder.Entity("TVQMANotifications.Models.SendLog", b =>
                 {
                     b.HasOne("TVQMANotifications.Models.Message")
-                        .WithOne("Logs")
-                        .HasForeignKey("TVQMANotifications.Models.SendLog", "MessageId")
+                        .WithMany("Logs")
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("TVQMANotifications.Models.Subscriber", "Subscriber")
+                        .WithMany()
+                        .HasForeignKey("SubscriberId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618

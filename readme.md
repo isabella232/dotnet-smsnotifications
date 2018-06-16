@@ -9,6 +9,8 @@ If you live in the bay area and want to see some talented kids race stop by at t
 
 ## Prerequistes
 This article assumes that you are familiar with .net core and ASP.net MVC patterns, you will also need an account and a phone number with Sinch. 
+The repo is location at github [here](http://github.com/sinch/dotnet-smsnotificaions), the solution is kind of ready to run you just need to add a valid connection string. There is more code in the repo in this article I will talk about the Sinch specific parts
+
 
 ## Time to build 
 [screen shot]
@@ -23,50 +25,53 @@ Next thing I need is methods for officials to send out messages. In this case, w
 ![](images/flowchart.png)
 
 ### Managing signups via SMS
-I created basic ASP.Net core MVC project enabled Asp.Net identity, bought a number in the [portal](https://portal.sinch.com/#/numbers) (Yeah, I know we should have way more countries in stock, its coming but for now mail me if you need a particular country.). Create an app and assign the number a webhook url to receive SMS. 
+I bought a number in the [portal](https://portal.sinch.com/#/numbers) (Yeah, I know we should have way more countries in stock, its coming but for now mail me if you need a particular country.). Create an app and assign the number a webhook url to receive SMS. 
 
 ![](images/dashboardcallback.png)
 
 I use the awesome tool [ngrok](https://www.sinch.com/tutorials/getting-second-number-testing-sinch-callbackswebhooks-ngrok/) during development. 
-Next I need to add a WebApi controller to handle all incoming SMS.
+Next I need to add a WebApi controller to handle all incoming SMS. 
 
 *SMSController.cs*
 ```csharp
 [Produces("application/json")]
 public class SMSController : Controller {
+    private readonly SMSSender _smsSender;
     private readonly ApplicationDbContext _dbContext;
+    private readonly IConfiguration _configuration;
 
-    public SMSController(ApplicationDbContext dbContext) {
-        _dbContext = dbContext;
+    public SMSController(ApplicationDbContext dbContext, SMSSender smsSender, IConfiguration configuration) {
+       _smsSender = smsSender;
+       _dbContext = dbContext;
+       _configuration = configuration;
     }
 
     [Route("/SMS")]
     public async Task<OkResult> Post([FromBody] IncomingMessageEvent model) {
-        var smsApi = SinchFactory.CreateApiFactory("keyfrom dashboard", "secretstuff").CreateSmsApi();
         var fromNumber = "+" + model.From.Endpoint;
+        Subscriber subscriber = _dbContext.Subscribers.FirstOrDefault(m => m.Number == fromNumber);
         if (model.Message.Trim().ToLower() == "start" || model.Message.Trim().ToLower() == "unstop") {
-            if (!_dbContext.Subscribers.Any(m=> m.Number == fromNumber)) {
-                _dbContext.Subscribers.Add(new Subscriber
-                {
+            if (subscriber != null) {
+                subscriber = new Subscriber {
                     Number = fromNumber
-                });
+                };
+                _dbContext.Subscribers.Add(subscriber);
                 await _dbContext.SaveChangesAsync();
             }
-            await smsApi.Sms(fromNumber,
-                    "Thank you! \nYou are now subscribed to Western Grands 2018 Notifications.\n\nSms by Sinch https://www.sinch.com/")
-                .WithCli("+18442872483").Send();
+            await _smsSender.SendSMS(new Message { MessageContent = _configuration["Sinch:WelcomeMessage"] } , subscriber);
             return Ok();
         }
+
         if (model.Message.Trim().ToLower() == "stop") {
             if (_dbContext.Subscribers.Any(m => m.Number == fromNumber)) {
-                _dbContext.Subscribers.Remove(_dbContext.Subscribers.First(m=> m.Number == fromNumber));
+                _dbContext.Subscribers.Remove(_dbContext.Subscribers.First(m => m.Number == fromNumber));
                 await _dbContext.SaveChangesAsync();
             }
+            //add subscribper
+
             return Ok();
         }
-        await smsApi.Sms(fromNumber,
-                "Sorry, we only support Start and stopm if you have any questions please contact TVQMA")
-            .WithCli("+18442872483").Send();
+        await _smsSender.SendSMS(new Message { MessageContent = "Sorry, we only support Start and stopm if you have any questions please contact TVQMA" }, subscriber);
         return Ok();
     }
 }
@@ -75,10 +80,12 @@ public class SMSController : Controller {
 There is a few things here, first I want to reach to "Start" and "Stop" keyword, the unstop command kicks in if you start en then send in stop, then you need to send unstop to reanble sms from that number. 
 In the start command I check that the subscriber doesnt exist, if it does not add it to the database, and finally send out the welcome message. I opted for sending the message even if the subscriber exists since its a command the progtram still understands. **One Gotcha here, we send you the number with out + in e 164 format, but we require you to send it with a + to make sure its a country code hence the var fromNumber = "+" + model.From.Endpoint;**
 
-I also wanted to support stop to remove yourself and also provide somewhat meaningful feedback if you send in something we dont under stand. 
+I also wanted to support stop to remove yourself and also provide somewhat meaningful feedback if you send in something we dont under stand.
+
+
 
 ### Subscriber data class 
-The subscriber dataclass serveres to keep track of the peole that sends in a start sms, its using Entity framework adn in the github repo you will also see that a scafolded the whole class to provide the club with a crude admin of subscribers. 
+The subscriber data class serveres to keep track of the peole that sends in a start sms, its using Entity framework adn in the github repo you will also see that a scafolded the whole class to provide the club with a crude admin of subscribers. 
 
 *Susbscriber.cs*
 ```csharp
@@ -114,8 +121,48 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser> {
     }
 ```
 
+And the sms are send thru a SMSsender service that is added in Startup.cs that is covered a bit later. 
 As you can see i use the Sinch Nuget package to help me out https://www.nuget.org/packages/Sinch.ServerSdk/ while not necessary it sure makes it easier when it comes to signing request. 
- 
+
+*SMSSender.cs* 
+```
+public class SMSSender {
+        private ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
+        private SinchConfig _sinchConfig;
+
+        public SMSSender(ApplicationDbContext context, IConfiguration configuration) {
+            _context = context;
+            
+            _configuration = configuration;
+            _sinchConfig = context.SinchConfig.FirstOrDefault();
+        }
+        public async Task SendSMS(Message message, Subscriber to) {
+            var smsApi = SinchFactory.CreateApiFactory(_sinchConfig.Key, _sinchConfig.Secret).CreateSmsApi();
+            var messageid = await smsApi.Sms(to.Number,
+                    message.MessageContent + "\n\n" +
+                    _sinchConfig.MarketingFooter)
+                .WithCli(_sinchConfig.SinchNumber).Send();
+            _context.SendLogs.Add(new SendLog() {
+                DateSent = DateTime.UtcNow,
+                MessageId = message.MessageId,
+                SubscriberId = to.SubscriberId,
+                SinchMessageId = messageid.MessageId.ToString()
+            });
+            await _context.SaveChangesAsync();
+            
+        }
+    }
+```
+
+This service, creates a SMS API, adds the footer marketing text and logs the SMS message to a send log so i could choose to implement status checks on sms at a later stage. 
+In startup.cs in the ConfigureServices I added the line so dependency injection could take of this where ever i need to send an SMS message. 
+
+```
+services.AddTransient<SMSSender>();
+```
+
+
 ## Sending SMS notifications. 
 I wanted  to store each message i send, and also keep a log of of who I send it to so I added two more classes to support this. 
 
@@ -177,28 +224,35 @@ public class MessagesController : Controller {
         return View(model);
     }
 
-    [Route("/dashboard")]
-    [HttpPost]
-    public async Task<IActionResult> Dashboard(DashboardModel model) {
-        var smsApi = SinchFactory.CreateApiFactory("key", "secret").CreateSmsApi();
-        if (ModelState.IsValid)
-        {
-            await CreateAndSendMessage(new Message
-            {
-                MessageContent =  model.Message,
-                DateSent =  DateTime.UtcNow
-            });
+        [Route("/dashboard")]
+        [HttpPost]
+        public async Task<IActionResult> Dashboard(DashboardModel model) {
+            if (ModelState.IsValid) {
+                await CreateAndSendMessage(new Message {
+                    MessageContent = model.Message,
+                    DateSent = DateTime.UtcNow
+                });
+            }
+
+            model.SubscriberCount = _context.Subscribers.Count();
+            model.LastMessages = _context.Messages.OrderByDescending(m => m.DateSent).Take(10).ToList();
+            model.Message = "";
+            return View(model);
         }
-        model.SubscriberCount = _context.Subscribers.Count();
-        model.LastMessages = _context.Messages.OrderByDescending(m => m.DateSent).Take(10).ToList();
-        model.Message = "";
-        return View(model);
-    }
+        private async Task CreateAndSendMessage(Message message) {
+            message.DateSent = DateTime.UtcNow;
+            _context.Add(message);
+            await _context.SaveChangesAsync();
+            var subscribers = await _context.Subscribers.ToListAsync();
+            foreach (var s in subscribers) {
+                await _smsSender.SendSMS(message, s);
+            }
+        }
 }
 
 ```
 
-I want to make it super easy for officals to send a quick message and getting drivers to stageing is one of the most critical steps, if you dont show up on time for your race you will miss you race. 
+I want to make it super easy for officials to send a quick message and getting drivers to staging is one of the most critical steps, if you dont show up on time for your race you will miss you race. 
 
 *Dashboard.cshml*
 ```
@@ -288,7 +342,9 @@ I want to make it super easy for officals to send a quick message and getting dr
 </div>
 ```
 
-Now its ready to try out, you will find all teh source code on Github (link) with some more bells and whistles.
+This is pretty much it when it comes to the SMS and sinch functionality, in hte solution you will see some user handling and a few pages to deal with messages that is standard aspnet stuff. Clone this and let me know if you have any questions. 
+
+
 
 
  
