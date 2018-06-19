@@ -1,36 +1,38 @@
 ## Building a simple SMS notification system with Sinch
 
-A few months back my son and I started to race [quarter midgets]([quarter midgets](https://en.wikipedia.org/wiki/Quarter_Midget_racing), For myself, it has been loads of fun and steep learning curve believe me a perfectly aligned cells without using tables in HTML is pretty easy compared to tuning a racing chassis. Its also amazing to meet the people that put in the hard work and their heart to make racing (somewhat) affordable for kids. Anyway, everyone can contribute to the club with what they are good at (in my case coding a skill I am at least somewhat competent in) in this article I’ll show you a simple notification system I built yesterday for the Western Grands. Every year there are three main evens in Quarter Midget racing one for each region and one dirt event. This year our club [Tri Valley Quarter Midget Association](https://www.tvqma.org/) has the honor to host it.
+A few months back my son and I started to race [quarter midgets](https://en.wikipedia.org/wiki/Quarter_Midget_racing). For myself, it has been loads of fun and a steep learning curve. Believe me, getting perfectly aligned cells without using tables in HTML is pretty easy compared to tuning a racing chassis! It's also amazing to meet the people that put in the hard work, and their heart to make racing (somewhat) affordable for kids. Anyway, everyone is encouraged to contribute to the club with their skills - in my case, coding is a skill I am at least somewhat competent in. In this article I’ll show you a simple notification system I built yesterday for the Western Grands. Every year there are three main events in Quarter Midget racing, one for each region and one dirt event. This year our club [Tri Valley Quarter Midget Association](https://www.tvqma.org/) has the honor of hosting the events.
 
 ![](images/qmcar.jpg)
 
-This year 250 cars will come from all over the western states and race at our track for three intensive days in 17 different classes and about 125 drivers. To manage and have all races done in time there is a lot of logistics that need to happen to make sure that people are in the right place at the right time. To give you a glance on the schedule, two days of parking of trailers, every racecar needs to be checked that they have the right fuel, inspected for safety, make sure it has enough weight, transponders to measure lap times. And last but not least, the main purpose getting the kids out on the track. Each kid has practice laps, qualifying laps, heats, Lower Mains and the A mains. In a club race; this is all done in one day by an announcer who will announce who needs to be where. This year it's just too big, if you are back in your trailer there will be no way to hear the announcer during the Grands. To solve this, a simple SMS system for the Tower and Pit stewards to send SMS to everyone on whats going on seems like a good idea. We believe this will help people to be on time and also have the confidence to relax and have fun! After all that’s why we are doing this.
-If you live in the bay area and want to see some talented kids race stop by at the TVQMA June 28-30, or come by this Saturday 16th of June and you kids can try a race car for real.
+This year, 250 cars and about 125 drivers will come from all over the Western States to race at our track in 17 different classes, for three intensive days. To manage all the races and drivers and make sure everyone is in the right place at the right time, there are a lot of logistics to take care of. To give you an idea of the schedule, 2 days alone are taken up with parking trailers, then every car needs to be checked that they have the correct fuel, inspected for safety, be weighed, have lap times measured and last but not least, get the cars and kids out on the track. Each kid has practice laps, qualifying laps, heats, Lower Mains and the A mains. In a club race; this is usually done by a single announcer who will announce who needs to be where. This year the event is just going to be too big. If you're in your trailer there's no way to hear the announcer during the Grands. To solve this problem, a simple SMS system for the Tower and Pit stewards to send SMS to everyone to communicate announcements seemed like a good idea. We believe this system has the potential to help people be on time and also give them the confidence to relax and have fun! After all that’s what it's all about!
 
 ## Prerequistes
 This article assumes that you are familiar with .net core and ASP.net MVC patterns, you will also need an account and a phone number with Sinch. 
-The repo is location at github [here](http://github.com/sinch/dotnet-smsnotificaions), the solution is kind of ready to run you just need to add a valid connection string. There is more code in the repo in this article I will talk about the Sinch specific parts
+
+The repo is located at github [here](http://github.com/sinch/dotnet-smsnotificaions), the solution is kind of ready to run, you just need to add a valid connection string. There is more code in the repo in this article, but I will talk about the Sinch specific parts
 
 
 ## Time to build 
 [screen shot]
-So the basic idea is that a track official that would announce something in PA system also should have the tool to send a quick SMS with the same message. Because of regulations in the US, we are going to use Toll-free numbers to send SMS to ensure high thruput  and no spam filter (Not because its free for users (it's not [link to an article about TFN SMS Katie]). If you live in Europe, you can pick any number you want in most countries. 
+So the basic idea is that the track official who would usually announce something over a PA system, also has access to a tool to send a quick SMS out to everyone containing the same message. Due to regulations in the US, we are going to use Toll-free numbers to send SMS to ensure high throughput and no spam filter. If you live in Europe, you can pick any number you like in most countries. 
 
-First I need to collect phone numbers from racers, we are doing that by advertising on social media and having signs around the track where tell people to send an SMS containing start to +1 888-851-0949. When they do we add the sender to the subscriber's database. 
-Next thing I need is methods for officials to send out messages. In this case, we have two ways: 
-1. with a website, 
-2. A whitelist of numbers that can send SMS to above number and anything they send is sent to the everyone in the list. 
+First we needed to collect phone numbers from racers, we managed this by advertising on social media and having signs around the track asking people to send an SMS containing 'START' to +1 888-851-0949. Once a text was sent, the driver / racer was added to the database. 
+
+The next thing we needed was a way for track officials to send out messages. In this case, we had two possibilities: 
+1. Via a website 
+2. Via a whitelist of numbers with the ability to send SMS to the number above number, with anything they send also being sent to everyone in the list. 
 
 
 ![](images/flowchart.png)
 
 ### Managing signups via SMS
-I bought a number in the [portal](https://portal.sinch.com/#/numbers) (Yeah, I know we should have way more countries in stock, its coming but for now mail me if you need a particular country.). Create an app and assign the number a webhook url to receive SMS. 
+I bought a number in the [portal](https://portal.sinch.com/#/numbers) (Yeah, I know we should have way more countries in stock, its coming. For now mail me if you need a particular country.) Created an app and assigned the number a webhook url to receive SMS. 
 
 ![](images/dashboardcallback.png)
 
-I use the awesome tool [ngrok](https://www.sinch.com/tutorials/getting-second-number-testing-sinch-callbackswebhooks-ngrok/) during development. 
-Next I need to add a WebApi controller to handle all incoming SMS. 
+I used the awesome tool [ngrok](https://www.sinch.com/tutorials/getting-second-number-testing-sinch-callbackswebhooks-ngrok/) during development. 
+
+Next I needed to add a WebApi controller to handle all incoming SMS. 
 
 *SMSController.cs*
 ```csharp
@@ -77,15 +79,15 @@ public class SMSController : Controller {
 }
 ```
 
-There is a few things here, first I want to reach to "Start" and "Stop" keyword, the unstop command kicks in if you start en then send in stop, then you need to send unstop to reanble sms from that number. 
-In the start command I check that the subscriber doesnt exist, if it does not add it to the database, and finally send out the welcome message. I opted for sending the message even if the subscriber exists since its a command the progtram still understands. **One Gotcha here, we send you the number with out + in e 164 format, but we require you to send it with a + to make sure its a country code hence the var fromNumber = "+" + model.From.Endpoint;**
+There are a few things to mention here. Firstly I wanted to reach the "Start" and "Stop" keyword, the unstop command kicks in if you start, then send a stop message. If this happens you'll need to send an unstop message to re-enble sms from that number. 
+In the start command I checked to make sure that the subscriber didn't already exist, if they are not already in the database I added them and then finally sent out the welcome message. I opted for sending the message even if the subscriber exists, since its a command the program still understands. **One Gotcha here, we send you the number with out + in e 164 format, but we require you to send it with a + to make sure its a country code hence the var fromNumber = "+" + model.From.Endpoint;**
 
-I also wanted to support stop to remove yourself and also provide somewhat meaningful feedback if you send in something we dont under stand.
+I also wanted to support stop so that people could remove themselves and also provide somewhat meaningful feedback if something was sent in that we didn't understand.
 
 
 
 ### Subscriber data class 
-The subscriber data class serveres to keep track of the peole that sends in a start sms, its using Entity framework adn in the github repo you will also see that a scafolded the whole class to provide the club with a crude admin of subscribers. 
+The subscriber data class keeps track of the people that send in a start SMS, it's using Entity framework. In the github repo you will also see that I scafolded the whole class to provide the club with a crude admin of subscribers. 
 
 *Susbscriber.cs*
 ```csharp
@@ -121,8 +123,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser> {
     }
 ```
 
-And the sms are send thru a SMSsender service that is added in Startup.cs that is covered a bit later. 
-As you can see i use the Sinch Nuget package to help me out https://www.nuget.org/packages/Sinch.ServerSdk/ while not necessary it sure makes it easier when it comes to signing request. 
+Then the SMS is sent through an SMSsender service that is added in Startup.cs - I will cover that a bit later. 
+As you can see,  I use the Sinch Nuget package to help me out https://www.nuget.org/packages/Sinch.ServerSdk/ while not necessary, it sure makes it easier when it comes to signing requests. 
 
 *SMSSender.cs* 
 ```
@@ -155,8 +157,9 @@ public class SMSSender {
     }
 ```
 
-This service, creates a SMS API, adds the footer marketing text and logs the SMS message to a send log so i could choose to implement status checks on sms at a later stage. 
-In startup.cs in the ConfigureServices I added the line so dependency injection could take of this where ever i need to send an SMS message. 
+This service creates a SMS API, adds the footer marketing text and logs the SMS message to a send log so if we needed to implement status checks at a late stage we would be able to. 
+
+In startup.cs in the ConfigureServices, I added a line so dependency injection could take of this whenever I needed to send an SMS message. 
 
 ```
 services.AddTransient<SMSSender>();
@@ -164,7 +167,7 @@ services.AddTransient<SMSSender>();
 
 
 ## Sending SMS notifications. 
-I wanted  to store each message i send, and also keep a log of of who I send it to so I added two more classes to support this. 
+I wanted to store each message sent, and also keep a log of of who messages were snet to, so I added two more classes to support this. 
 
 *Message.cs*
 ```csharp
@@ -252,7 +255,7 @@ public class MessagesController : Controller {
 
 ```
 
-I want to make it super easy for officials to send a quick message and getting drivers to staging is one of the most critical steps, if you dont show up on time for your race you will miss you race. 
+I wanted to make it super easy for officials to send a quick message. Getting drivers to staging is a critical step of the race, if you dont show up on time for your race you will miss it. 
 
 *Dashboard.cshml*
 ```
@@ -342,7 +345,7 @@ I want to make it super easy for officials to send a quick message and getting d
 </div>
 ```
 
-This is pretty much it when it comes to the SMS and sinch functionality, in hte solution you will see some user handling and a few pages to deal with messages that is standard aspnet stuff. Clone this and let me know if you have any questions. 
+That's pretty much it when it comes to the SMS and Sinch functionality, in the solution you will see some user handling and a few pages to deal with messages that is standard aspnet stuff. Clone this and let me know if you have any questions. 
 
 
 
