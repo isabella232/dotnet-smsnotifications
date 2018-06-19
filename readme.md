@@ -4,29 +4,29 @@ A few months back, my son and I started to race [quarter midgets](https://en.wik
 
 ![](images/qmcar.jpg)
 
-This year, 250 cars and about 125 drivers will come from all over the Western States to race at our track in 17 different classes, for three intensive days. To manage all the races and drivers and make sure everyone is in the right place at the right time, there are a lot of logistics to take care of. To give you an idea of the schedule, 2 days alone are taken up with parking trailers, then every car needs to be checked that they have the correct fuel, inspected for safety, be weighed, have lap times measured and last but not least, get the cars and kids out on the track. Each kid has practice laps, qualifying laps, heats, Lower Mains and the A mains. In a club race; this is usually done by a single announcer who will announce who needs to be where. This year the event is just going to be too big. If you're in your trailer there's no way to hear the announcer during the Grands. To solve this problem, a simple SMS system for the Tower and Pit stewards to send SMS to everyone to communicate announcements seemed like a good idea. We believe this system has the potential to help people be on time and also give them the confidence to relax and have fun! After all that’s what it's all about!
+This year, 250 cars and about 125 drivers will come from all over the Western States to race at our track in 17 different classes, for three intensive days. To manage all the races and drivers, and make sure everyone is in the right place at the right time, there's a lot of logistics to take care of. To give you an idea of the schedule, 2 days alone are taken up with parking trailers, then every car needs to be checked for the correct fuel, inspected for safety, get weighed, have lap times measured and last but not least, get the cars and kids out on the track. Each kid has practice laps, qualifying laps, heats, Lower Mains and the A mains. In a club race, this is usually managed by a single person announcing over a PA system where people need to be at any given time. This year, the event is going to be too big for this to be effective. If someone is in their trailer there's no way they'll be able to hear the announcer during the Grands. To solve this problem, I suggested a simple SMS system for the Tower and Pit stewards, enabling them to send SMS to communicate announcements. We believe this system has the potential to help people be on time, and also give them the confidence to relax and have fun! After all, that’s what it's all about!
 
 ## Prerequistes
 This article assumes that you are familiar with .net core and ASP.net MVC patterns, you will also need an account and a phone number with Sinch. 
 
-The repo is located at github [here](http://github.com/sinch/dotnet-smsnotificaions), the solution is kind of ready to run, you just need to add a valid connection string. There is more code in the repo in this article, but I will talk about the Sinch specific parts
+The repo is located at github [here](http://github.com/sinch/dotnet-smsnotificaions), the solution is kind of ready to run, you just need to add a valid connection string. There is more code in the repo in this article, but I will talk about the Sinch specific parts.
 
 
 ## Time to build 
 [screen shot]
-So the basic idea is that the track official who would usually announce something over a PA system, also has access to a tool to send a quick SMS out to everyone containing the same message. Due to regulations in the US, we are going to use Toll-free numbers to send SMS to ensure high throughput and no spam filter. If you live in Europe, you can pick any number you like in most countries. 
+So the basic idea is that the track official who would usually announce something over a PA system, also has access to a tool to send a quick SMS out to everyone containing the same message. Due to regulations in the US, we are going to use [Toll-Free Numbers] (https://www.clxcommunications.com/products/toll-free-numbers/) to send SMS to ensure high throughput and no spam filter. If you live in Europe, you can pick any number you like in most countries. 
 
-First we needed to collect phone numbers from racers, we managed this by advertising on social media and having signs around the track asking people to send an SMS containing 'START' to +1 888-851-0949. Once a text was sent, the driver / racer was added to the database. 
+First we needed to collect phone numbers from racers, we managed this by advertising on social media, and having signs around the track asking people to send an SMS containing 'START' to +1 888-851-0949. Once a text was sent, the number was added to the database. 
 
 The next thing we needed was a way for track officials to send out messages. In this case, we had two possibilities: 
 1. Via a website 
-2. Via a whitelist of numbers with the ability to send SMS to the number above number, with anything they send also being sent to everyone in the list. 
+2. Via a whitelist of numbers with the ability to send SMS to the number listed above 
 
 
 ![](images/flowchart.png)
 
 ### Managing signups via SMS
-I bought a number in the [portal](https://portal.sinch.com/#/numbers) (Yeah, I know we should have way more countries in stock, its coming. For now mail me if you need a particular country.) Created an app and assigned the number a webhook url to receive SMS. 
+I bought a number in the [portal](https://portal.sinch.com/#/numbers) (Yeah, I know we should have way more countries in stock, it's coming. For now mail me if you need a particular country), created an app and assigned the number a webhook url to receive SMS. 
 
 ![](images/dashboardcallback.png)
 
@@ -79,10 +79,11 @@ public class SMSController : Controller {
 }
 ```
 
-There are a few things to mention here. Firstly I wanted to reach the "Start" and "Stop" keyword, the unstop command kicks in if you start, then send a stop message. If this happens you'll need to send an unstop message to re-enble sms from that number. 
-In the start command I checked to make sure that the subscriber didn't already exist, if they are not already in the database I added them and then finally sent out the welcome message. I opted for sending the message even if the subscriber exists, since its a command the program still understands. **One Gotcha here, we send you the number with out + in e 164 format, but we require you to send it with a + to make sure its a country code hence the var fromNumber = "+" + model.From.Endpoint;**
+There are a few things to mention here. Firstly I wanted to reach the "Start" and "Stop" keyword, the unstop command kicks in if you start, then send a stop message. If this happens you'll need to send an unstop message to re-enable sms from that number. 
 
-I also wanted to support stop so that people could remove themselves and also provide somewhat meaningful feedback if something was sent in that we didn't understand.
+In the start command I checked to make sure that the subscriber didn't already exist, if they weren't already in the database I added them, and then finally sent out the welcome message. I opted for sending the message even if the subscriber exists, since its a command the program still understands. **One Gotcha here, we send you the number with out + in e 164 format, but we require you to send it with a + to make sure its a country code hence the var fromNumber = "+" + model.From.Endpoint;**
+
+I also wanted to support stop, so that people could remove themselves, and also provide somewhat meaningful feedback if something was sent in that we didn't understand.
 
 
 
@@ -157,9 +158,9 @@ public class SMSSender {
     }
 ```
 
-This service creates a SMS API, adds the footer marketing text and logs the SMS message to a send log so if we needed to implement status checks at a late stage we would be able to. 
+This service creates an SMS API, adds the footer marketing text, and logs the SMS message to a send log, so if we needed to implement status checks at a late stage we would be able to. 
 
-In startup.cs in the ConfigureServices, I added a line so dependency injection could take of this whenever I needed to send an SMS message. 
+In startup.cs in the ConfigureServices, I added a line so dependency injection could take care of this whenever I needed to send an SMS message. 
 
 ```
 services.AddTransient<SMSSender>();
@@ -167,7 +168,7 @@ services.AddTransient<SMSSender>();
 
 
 ## Sending SMS notifications. 
-I wanted to store each message sent, and also keep a log of of who messages were snet to, so I added two more classes to support this. 
+I wanted to store each message sent, and also keep a log of who messages were sent to, so I added two more classes to support this. 
 
 *Message.cs*
 ```csharp
@@ -207,7 +208,7 @@ public class DashboardModel {
 }
 ```
 
-Finally a a Controller and a View 
+Finally a Controller and a View 
 
 *MessageContoller.cs*
 ```
@@ -255,7 +256,7 @@ public class MessagesController : Controller {
 
 ```
 
-I wanted to make it super easy for officials to send a quick message. Getting drivers to staging is a critical step of the race, if you dont show up on time for your race you will miss it. 
+I wanted to make it super easy for officials to send a quick message. Getting drivers to staging is a critical step of the race, if you don't show up on time for your race you will miss it. 
 
 *Dashboard.cshml*
 ```
