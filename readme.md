@@ -52,7 +52,7 @@ public class SMSController : Controller {
         var fromNumber = "+" + model.From.Endpoint;
         Subscriber subscriber = _dbContext.Subscribers.FirstOrDefault(m => m.Number == fromNumber);
         if (model.Message.Trim().ToLower() == "start" || model.Message.Trim().ToLower() == "unstop") {
-            if (subscriber != null) {
+            if (subscriber == null) {
                 subscriber = new Subscriber {
                     Number = fromNumber
                 };
@@ -83,8 +83,6 @@ There are a few things to mention here. Firstly I wanted to reach the "Start" an
 In the start command I checked to make sure that the subscriber didn't already exist, if they weren't already in the database I added them, and then finally sent out the welcome message. I opted for sending the message even if the subscriber exists, since its a command the program still understands. **One Gotcha here, we send you the number with out + in e 164 format, but we require you to send it with a + to make sure its a country code hence the var fromNumber = "+" + model.From.Endpoint;**
 
 I also wanted to support stop, so that people could remove themselves, and also provide somewhat meaningful feedback if something was sent in that we didn't understand.
-
-
 
 ### Subscriber data class 
 The subscriber data class keeps track of the people that send in a start SMS, it's using Entity framework. In the github repo you will also see that I scafolded the whole class to provide the club with a crude admin of subscribers. 
