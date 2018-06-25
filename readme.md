@@ -25,7 +25,7 @@ The next thing we needed was a way for track officials to send out messages. In 
 ![](images/flowchart.png)
 
 ### Managing signups via SMS
-I bought a number in the [portal](https://portal.sinch.com/#/numbers) (Yeah, I know we should have way more countries in stock, it's coming. For now mail me if you need a particular country), created an app and assigned the number a webhook url to receive SMS. During development I alwasy use the awesome tool  [ngrok](https://www.sinch.com/tutorials/getting-second-number-testing-sinch-callbackswebhooks-ngrok/) during development. 
+I bought a number in the [portal](https://portal.sinch.com/#/numbers) (Yeah, I know we should have way more countries in stock, it's coming. For now mail me if you need a particular country), created an app and assigned the number a webhook url to receive SMS. During development I always use the awesome tool [ngrok](https://www.sinch.com/tutorials/getting-second-number-testing-sinch-callbackswebhooks-ngrok/) during development. 
 
 ![](images/dashboardcallback.png)
 
