@@ -121,7 +121,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser> {
 ```
 
 Then the SMS is sent through an SMSsender service that is added in Startup.cs - I will cover that a bit later. 
-As you can see,  I use the Sinch Nuget package to help me out https://www.nuget.org/packages/Sinch.ServerSdk/ while not necessary, it sure makes it easier when it comes to signing requests. 
+As you can see,  I use the Sinch Nuget package to help me out: https://www.nuget.org/packages/Sinch.ServerSdk/ While not necessary, it sure makes it easier when it comes to signing requests. 
 
 *SMSSender.cs* 
 ```
