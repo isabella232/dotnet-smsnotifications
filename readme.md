@@ -13,7 +13,6 @@ The repo is located at github [here](http://github.com/sinch/dotnet-smsnotificai
 
 
 ## Time to build 
-[screen shot]
 So the basic idea is that the track official who would usually announce something over a PA system, also has access to a tool to send a quick SMS out to everyone containing the same message. Due to regulations in the US, we are going to use [Toll-Free Numbers](https://www.clxcommunications.com/products/toll-free-numbers/) to send SMS to ensure high throughput and no spam filter. If you live in Europe, you can pick any number you like in most countries. 
 
 First we needed to collect phone numbers from racers, we managed this by advertising on social media, and having signs around the track asking people to send an SMS containing 'START' to +1 888-851-0949. Once a text was sent, the number was added to the database. 
