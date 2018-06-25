@@ -79,7 +79,7 @@ public class SMSController : Controller {
 
 There are a few things to mention here. Firstly I wanted to reach the "Start" and "Stop" keyword, the unstop command kicks in if you start, then send a stop message. If this happens you'll need to send an unstop message to re-enable sms from that number. 
 
-In the start command I checked to make sure that the subscriber didn't already exist, if they weren't already in the database I added them, and then finally sent out the welcome message. I opted for sending the message even if the subscriber exists, since its a command the program still understands. **One Gotcha here, we send you the number with out + in e 164 format, but we require you to send it with a + to make sure its a country code hence the var fromNumber = "+" + model.From.Endpoint;**
+In the start command I checked to make sure that the subscriber didn't already exist, if they weren't already in the database I added them, and then finally sent out the welcome message. I opted for sending the message even if the subscriber exists, since it's a command the program still understands. **One Gotcha here, we send you the number with out + in e 164 format, but we require you to send it with a + to make sure its a country code hence the var fromNumber = "+" + model.From.Endpoint;**
 
 I also wanted to support stop, so that people could remove themselves, and also provide somewhat meaningful feedback if something was sent in that we didn't understand.
 
