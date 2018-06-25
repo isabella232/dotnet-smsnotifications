@@ -191,7 +191,7 @@ public class SendLog {
     }
 ```
 
-I wanted to show this in a dashboard like page so a ViewModel is also needed
+I wanted to show this in a dashboard style layout, so a ViewModel was also needed.
 
 *DashboardModel.cs*
 ```
