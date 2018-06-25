@@ -202,7 +202,7 @@ public class DashboardModel {
 }
 ```
 
-Finally a Controller and a View 
+Finally a Controller and a View. 
 
 *MessageContoller.cs*
 ```
