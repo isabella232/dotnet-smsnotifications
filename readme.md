@@ -96,7 +96,7 @@ public class Subscriber {
 }
 ```
 
-And then I added it as a db set to the ApplicationDbContext as a DBset<Subscriber>  
+And then I added it as a db set to the ApplicationDbContext as a DBset<Subscriber>.  
 
 *ApplicationDbContext.cs*
 ```csharp
