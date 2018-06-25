@@ -154,9 +154,7 @@ public class SMSSender {
     }
 ```
 
-This service creates an SMS API, adds the footer marketing text, and logs the SMS message to a send log, so if we needed to implement status checks at a later stage, we would be able to. 
-
-In startup.cs in the ConfigureServices, I added a line so dependency injection could take care of this whenever I needed to send an SMS message. 
+This service creates an SMS API, adds the footer marketing text, and logs the SMS message to a send log, so if we needed to implement status checks at a later stage, we would be able to. In startup.cs in the ConfigureServices, I added a line so dependency injection could take care of this whenever I needed to send an SMS message. 
 
 ```
 services.AddTransient<SMSSender>();
