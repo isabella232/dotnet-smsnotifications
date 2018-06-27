@@ -7,9 +7,7 @@ A few months back, my son and I started to race [quarter midgets](https://en.wik
 This year, 250 cars and about 125 drivers will come from all over the Western States to race at our track in 17 different classes, for three intensive days. To manage all the races and drivers, and make sure everyone is in the right place at the right time, there's a lot of logistics to take care of. To give you an idea of the schedule, 2 days alone are taken up with parking trailers, then every car needs to be checked for the correct fuel, inspected for safety, get weighed, have lap times measured and last but not least, get the cars and kids out on the track. Then each kid has practice laps, qualifying laps, heats, Lower Mains and the A mains. This is usually managed by a single person announcing over a PA system where people need to be at certain times. This year, the event is going to be too big for this to be effective. If someone is in their trailer, there's no way they'll be able to hear the announcer during the Grands. To solve this problem, I suggested a simple SMS system for the Tower and Pit stewards, enabling them to send SMS to communicate announcements. We believe this system has the potential to help people be on time, and also give them the confidence to relax and have fun! After all, that’s what it's all about!
 
 ## Prerequistes
-This article assumes that you are familiar with .net core and ASP.net MVC patterns, you will also need an account and a phone number with Sinch. 
-
-The repo is located at github [here](http://github.com/sinch/dotnet-smsnotificaions), the solution is kind of ready to run, you just need to add a valid connection string. There is more code in the repo in this article, but I will talk about the Sinch specific parts.
+This article assumes that you are familiar with .net core and ASP.net MVC patterns, you will also need an account and a phone number with Sinch. The solution is kind of ready to run, you just need to add a valid connection string. There is more code in the repo in this article, but I will talk about the Sinch specific parts.
 
 
 ## Time to build 
